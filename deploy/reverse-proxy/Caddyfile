@@ -1,0 +1,10 @@
+# Pocket Forms behind Caddy.
+forms.example.com {
+	reverse_proxy pocket-forms:8080
+}
+
+# Optional: a public hostname that serves only the forms (set PUBLIC_URL=https://answer.example.com).
+# People outside open https://answer.example.com/f/<address>; nothing else of the app is served there.
+# answer.example.com {
+# 	reverse_proxy pocket-forms:8080
+# }

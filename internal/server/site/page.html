@@ -1,0 +1,93 @@
+{{define "page"}}<!doctype html>
+<html lang="{{.Lang}}" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+<title>{{.Title}}</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/_forms/form.css">
+<style>:root{--accent:{{safeCSS .Accent}}}</style>
+</head>
+<body class="{{if .Embed}}embed{{end}}">
+<main class="wrap">
+{{if .Preview}}<p class="banner">{{.W.preview}}</p>{{end}}
+<div class="card">
+{{if eq .Kind "form"}}{{template "form" .}}
+{{else if eq .Kind "thanks"}}
+  <div class="done">
+    <div class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h1>{{.W.thanks_title}}</h1>
+    {{range paras .Thanks}}<p>{{range $i, $l := .}}{{if $i}}<br>{{end}}{{$l}}{{end}}</p>{{end}}
+    {{if .Notice}}<p class="notice">{{.Notice}}</p>{{end}}
+    {{if .Again}}<p><a class="again" href="{{.Again}}">{{.W.again}}</a></p>{{end}}
+  </div>
+{{else if eq .Kind "closed"}}
+  <div class="done">
+    <h1>{{.Form.Title}}</h1>
+    <p class="closed-title">{{.W.closed_title}}</p>
+    <p class="muted">{{.Closed}}</p>
+  </div>
+{{else}}
+  <div class="done"><h1>404</h1><p class="muted">{{.W.notfound}}</p></div>
+{{end}}
+</div>
+{{if and .Branding (not .Embed)}}<p class="made">{{.W.made}}</p>{{end}}
+</main>
+</body>
+</html>{{end}}
+
+{{define "form"}}
+<header class="head">
+  {{if .Form.Emoji}}<div class="emoji" aria-hidden="true">{{.Form.Emoji}}</div>{{end}}
+  <h1>{{.Form.Title}}</h1>
+  {{range paras .Form.Description}}<p class="lead">{{range $i, $l := .}}{{if $i}}<br>{{end}}{{$l}}{{end}}</p>{{end}}
+</header>
+{{if .Notice}}<p class="notice{{if .Bad}} bad{{end}}" role="alert">{{.Notice}}</p>{{end}}
+<form method="post" action="{{.Action}}" novalidate>
+  <input type="hidden" name="stamp" value="{{.Stamp}}">
+  {{if .Embed}}<input type="hidden" name="embed" value="1">{{end}}
+  <div class="hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+  {{$w := .W}}
+  {{range .Fields}}
+  {{if eq .Type "section"}}
+    <section class="sec">{{if .Label}}<h2>{{.Label}}</h2>{{end}}{{range paras .Help}}<p class="muted">{{range $i, $l := .}}{{if $i}}<br>{{end}}{{$l}}{{end}}</p>{{end}}</section>
+  {{else}}
+  <div class="q{{if .Error}} has-error{{end}}" id="q-{{.ID}}">
+    {{if or (eq .Type "choice") (eq .Type "checkboxes") (eq .Type "yesno") (eq .Type "rating")}}
+    <fieldset>
+      <legend class="label">{{.Label}}{{if .Required}} <span class="req" title="{{$w.required}}">*</span>{{end}}</legend>
+      {{if .Help}}<p class="help">{{.Help}}</p>{{end}}
+      {{$f := .}}
+      {{if eq .Type "choice"}}
+        <div class="opts">{{range .Options}}<label class="opt"><input type="radio" name="{{$f.ID}}" value="{{.}}"{{if index $f.Checked .}} checked{{end}}><span>{{.}}</span></label>{{end}}
+        {{if .Other}}<label class="opt other"><input type="radio" name="{{$f.ID}}" value="__other"{{if .OtherOn}} checked{{end}}><span>{{$w.other}}:</span><input type="text" name="{{$f.ID}}__other" value="{{.OtherVal}}" placeholder="{{$w.other_ph}}" aria-label="{{$w.other}}"></label>{{end}}</div>
+      {{else if eq .Type "checkboxes"}}
+        <div class="opts">{{range .Options}}<label class="opt"><input type="checkbox" name="{{$f.ID}}" value="{{.}}"{{if index $f.Checked .}} checked{{end}}><span>{{.}}</span></label>{{end}}
+        {{if .Other}}<label class="opt other"><input type="checkbox" name="{{$f.ID}}" value="__other"{{if .OtherOn}} checked{{end}}><span>{{$w.other}}:</span><input type="text" name="{{$f.ID}}__other" value="{{.OtherVal}}" placeholder="{{$w.other_ph}}" aria-label="{{$w.other}}"></label>{{end}}</div>
+      {{else if eq .Type "yesno"}}
+        <div class="opts row"><label class="opt"><input type="radio" name="{{.ID}}" value="yes"{{if index .Checked "yes"}} checked{{end}}><span>{{$w.yes}}</span></label><label class="opt"><input type="radio" name="{{.ID}}" value="no"{{if index .Checked "no"}} checked{{end}}><span>{{$w.no}}</span></label></div>
+      {{else}}
+        <div class="stars">{{range seq 5}}<input type="radio" id="{{$f.ID}}-{{.}}" name="{{$f.ID}}" value="{{str .}}"{{if index $f.Checked (str .)}} checked{{end}}><label for="{{$f.ID}}-{{.}}" title="{{str .}}">★</label>{{end}}</div>
+      {{end}}
+      {{if .Error}}<p class="err">{{.Error}}</p>{{end}}
+    </fieldset>
+    {{else if eq .Type "consent"}}
+      <label class="opt consent"><input type="checkbox" name="{{.ID}}" value="yes"{{if .Value}} checked{{end}}><span>{{.Label}}{{if .Required}} <span class="req">*</span>{{end}}</span></label>
+      {{if .Help}}<p class="help">{{.Help}}</p>{{end}}
+      {{if .Error}}<p class="err">{{.Error}}</p>{{end}}
+    {{else}}
+      <label class="label" for="f-{{.ID}}">{{.Label}}{{if .Required}} <span class="req" title="{{$w.required}}">*</span>{{end}}</label>
+      {{if .Help}}<p class="help">{{.Help}}</p>{{end}}
+      {{if eq .Type "long"}}<textarea id="f-{{.ID}}" name="{{.ID}}" rows="5" placeholder="{{.Placeholder}}"{{if .Required}} required{{end}}>{{.Value}}</textarea>
+      {{else if eq .Type "dropdown"}}{{$f := .}}<select id="f-{{.ID}}" name="{{.ID}}"{{if .Required}} required{{end}}><option value="">{{$w.choose}}</option>{{range .Options}}<option{{if eq . $f.Value}} selected{{end}}>{{.}}</option>{{end}}</select>
+      {{else}}<input id="f-{{.ID}}" type="{{.Input}}" name="{{.ID}}" value="{{.Value}}" placeholder="{{.Placeholder}}"{{if .Required}} required{{end}}{{if eq .Type "email"}} autocomplete="email"{{else if eq .Role "name"}} autocomplete="name"{{else if eq .Type "phone"}} autocomplete="tel"{{end}}{{if eq .Type "number"}} inputmode="decimal" step="any"{{end}}>{{end}}
+      {{if .Error}}<p class="err">{{.Error}}</p>{{end}}
+    {{end}}
+  </div>
+  {{end}}
+  {{end}}
+  <div class="send"><button type="submit">{{if .Form.SubmitLabel}}{{.Form.SubmitLabel}}{{else}}{{.W.submit}}{{end}}</button></div>
+</form>
+{{end}}

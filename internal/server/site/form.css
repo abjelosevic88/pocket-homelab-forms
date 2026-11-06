@@ -1,0 +1,77 @@
+/* Pocket Forms — a form as people outside see it. No scripts, light and dark. */
+:root {
+  --bg: #f5f6f8; --card: #ffffff; --ink: #1f2433; --muted: #646b7d; --line: #e0e3ea; --field: #ffffff;
+  --soft: color-mix(in srgb, var(--accent) 10%, transparent); --ink-accent: var(--accent); --bad: #c92a2a; --bad-soft: #fff1f1;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111318; --card: #1a1d24; --ink: #e8eaf0; --muted: #9aa1b2; --line: #2c313c; --field: #14161c; --bad: #ff8787; --bad-soft: #2a1717;
+    --ink-accent: color-mix(in srgb, var(--accent) 62%, white); --soft: color-mix(in srgb, var(--accent) 22%, transparent); }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+body.embed { background: transparent; }
+a { color: var(--ink-accent); text-decoration: none; }
+.wrap { max-width: 680px; margin: 0 auto; padding: max(24px, env(safe-area-inset-top)) 16px 40px; }
+.embed .wrap { padding: 8px; max-width: none; }
+.card { background: var(--card); border: 1px solid var(--line); border-top: 6px solid var(--accent); border-radius: 16px; padding: 28px 28px 24px; box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 8px 24px rgba(16,24,40,.05); }
+.embed .card { box-shadow: none; }
+@media (max-width: 560px) { .wrap { padding: 12px 10px 28px; } .card { padding: 22px 18px 18px; border-radius: 14px; } }
+.banner { background: #fff4d6; color: #6b4e00; border: 1px solid #f2d98d; border-radius: 10px; padding: 9px 13px; font-size: 14px; margin: 0 0 12px; }
+@media (prefers-color-scheme: dark) { .banner { background: #2d2615; color: #f1d27a; border-color: #4a3d17; } }
+.head { margin-bottom: 18px; }
+.emoji { font-size: 34px; line-height: 1; margin-bottom: 10px; }
+h1 { font-size: 26px; line-height: 1.25; margin: 0 0 8px; letter-spacing: -.01em; }
+h2 { font-size: 18px; margin: 0 0 4px; }
+.lead { color: var(--muted); margin: 0 0 8px; }
+.notice { border-radius: 10px; padding: 10px 13px; background: var(--soft); margin: 0 0 16px; font-size: 15px; }
+.notice.bad { background: var(--bad-soft); color: var(--bad); }
+form { display: flex; flex-direction: column; gap: 6px; }
+.sec { margin: 18px 0 2px; padding-top: 16px; border-top: 1px solid var(--line); }
+.sec p { margin: 0; }
+.q { padding: 12px 0; }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.label, legend { display: block; font-weight: 600; font-size: 16px; margin: 0 0 6px; padding: 0; }
+.req { color: var(--bad); font-weight: 600; }
+.help { color: var(--muted); font-size: 14px; margin: -2px 0 8px; }
+.muted { color: var(--muted); }
+input[type=text], input[type=email], input[type=tel], input[type=number], input[type=url], input[type=date], input[type=time], textarea, select {
+  width: 100%; font: inherit; color: var(--ink); background: var(--field); border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px;
+  outline: none; transition: border-color .12s, box-shadow .12s; min-height: 46px; }
+textarea { resize: vertical; min-height: 120px; }
+select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 36px; }
+input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--soft); }
+.has-error input[type=text], .has-error input[type=email], .has-error input[type=tel], .has-error input[type=number], .has-error input[type=url],
+.has-error input[type=date], .has-error input[type=time], .has-error textarea, .has-error select { border-color: var(--bad); }
+.err { color: var(--bad); font-size: 14px; margin: 6px 0 0; }
+.opts { display: flex; flex-direction: column; gap: 6px; }
+.opts.row { flex-direction: row; flex-wrap: wrap; }
+.opt { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; background: var(--field); }
+.opts.row .opt { flex: 1 1 120px; }
+.opt:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.opt:has(input:checked) { border-color: var(--accent); background: var(--soft); }
+.opt input[type=radio], .opt input[type=checkbox] { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); flex: none; }
+.opt.other input[type=text] { min-height: 36px; padding: 6px 10px; flex: 1; }
+.opt.consent { align-items: flex-start; }
+.opt.consent input { margin-top: 3px; }
+.stars { display: inline-flex; flex-direction: row-reverse; gap: 2px; }
+.stars input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.stars label { font-size: 34px; line-height: 1; color: var(--line); cursor: pointer; padding: 0 3px; transition: color .1s; }
+.stars label:hover, .stars label:hover ~ label, .stars input:checked ~ label { color: #f5a524; }
+.stars input:focus-visible + label { outline: 2px solid var(--accent); border-radius: 6px; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.send { margin-top: 14px; }
+button { font: inherit; font-weight: 600; color: #fff; background: var(--accent); border: 0; border-radius: 11px; padding: 13px 24px; min-height: 48px; cursor: pointer;
+  box-shadow: 0 1px 2px rgba(16,24,40,.12); }
+button:hover { filter: brightness(1.07); }
+button:focus-visible { outline: 3px solid var(--soft); outline-offset: 2px; }
+@media (max-width: 560px) { button { width: 100%; } }
+.done { text-align: center; padding: 18px 0 8px; }
+.done p { margin: 0 0 10px; }
+.tick { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 14px; color: var(--ink-accent); background: var(--soft); }
+.closed-title { font-weight: 600; }
+.again { font-weight: 600; }
+.again:hover { opacity: .8; }
+.made { text-align: center; color: var(--muted); font-size: 13px; margin: 16px 0 0; }

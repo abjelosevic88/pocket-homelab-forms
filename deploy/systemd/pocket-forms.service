@@ -1,0 +1,23 @@
+[Unit]
+Description=Pocket Forms — forms and surveys on your own server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=pocket-forms
+Group=pocket-forms
+ExecStart=/usr/local/bin/pocket-forms
+Environment=DATA_DIR=/var/lib/pocket-forms
+Environment=PORT=8080
+Environment=BASE_URL=https://forms.example.com
+Environment=SECURE_COOKIES=true
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/pocket-forms
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

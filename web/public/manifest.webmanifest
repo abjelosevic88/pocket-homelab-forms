@@ -1,0 +1,51 @@
+{
+  "name": "Pocket Forms",
+  "short_name": "Forms",
+  "description": "Forms and surveys anyone can fill in. Answers land in one inbox and go on to your other Pocket apps.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f6f8",
+  "theme_color": "#5f3dc4",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Write a post",
+      "url": "/write"
+    },
+    {
+      "name": "Drafts",
+      "url": "/posts?status=draft"
+    },
+    {
+      "name": "Comments",
+      "url": "/comments"
+    }
+  ]
+}
