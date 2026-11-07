@@ -18,7 +18,7 @@ export function useApps() {
   return { apps: data, on: (slug: string) => !!by(slug)?.connected, why: (slug: string) => by(slug)?.detail || '' }
 }
 
-const TITLES: Record<string, string> = { contact: 'Add to Pocket Contacts', project: 'Start a project', task: 'Make a follow-up task', event: 'Add to Pocket Calendar', note: 'Save as a note', signing: 'Send a document to sign' }
+const TITLES: Record<string, string> = { contact: 'Add to Pocket Contacts', project: 'Start a project', task: 'Make a follow-up task', event: 'Add to Pocket Calendar', note: 'Save as a note', signing: 'Send a document to sign', deal: 'Add to Pocket CRM as a deal' }
 
 type Opt = { id: number; name: string; key?: string; roles?: { id: number; role_name: string; name: string; email: string }[] }
 
@@ -65,6 +65,8 @@ export function MakeSheet({ view, target, onClose, onDone }: { view: AnswerView;
       </button>
     </>}>
       <form className="stack" onSubmit={go}>
+        {target === 'deal' && <p className="muted">{who} goes into Pocket CRM as a new lead, with what they asked for, their budget and their deadline, and a next step to get back to them. Doing it again opens the same deal, never a second one.</p>}
+        {target === 'deal' && <Field label="Deal name" help={`Empty: “${[view.items.find(i => i.role === 'company')?.text || r.name, subject].filter(Boolean).join(' — ')}”.`}><input value={f.title} onChange={e => setF({ ...f, title: e.target.value })} autoFocus /></Field>}
         {target === 'contact' && <p className="muted">{who}{r.email && r.name ? ` · ${r.email}` : ''} goes into your contacts, with a note saying where they came from. When their email is there already, you get a link to that contact instead.</p>}
         {target === 'project' && <>
           <Field label="Project name" help={`Empty: “${[view.items.find(i => i.role === 'company')?.text || r.name, subject].filter(Boolean).join(' — ')}”. All the answers go into its description.`}><input value={f.title} onChange={e => setF({ ...f, title: e.target.value })} autoFocus /></Field>
@@ -86,7 +88,7 @@ export function MakeSheet({ view, target, onClose, onDone }: { view: AnswerView;
           <Field label="A message with it (optional)"><textarea rows={3} value={f.notes} onChange={e => setF({ ...f, notes: e.target.value })} /></Field>
           <label className="check-row"><Switch checked={f.send} onChange={v => setF({ ...f, send: v })} label="Send now" /><span><b>Send it now</b><br /><span className="muted small">Off: the document waits in Pocket Sign for you to check and send.</span></span></label>
         </>}
-        {(target === 'task' || target === 'event' || target === 'note' || target === 'project') && <Field label="Notes (optional)" help="The answers and a link back are added by themselves."><textarea rows={2} value={f.notes} onChange={e => setF({ ...f, notes: e.target.value })} /></Field>}
+        {(target === 'task' || target === 'event' || target === 'note' || target === 'project' || target === 'deal') && <Field label="Notes (optional)" help="The answers and a link back are added by themselves."><textarea rows={2} value={f.notes} onChange={e => setF({ ...f, notes: e.target.value })} /></Field>}
       </form>
     </Modal>
   )
@@ -96,7 +98,7 @@ export function AcceptSheet({ view, onClose, onDone }: { view: AnswerView; onClo
   const { toast } = useToast()
   const { on, why } = useApps()
   const r = view.response
-  const [f, setF] = useState({ contact: true, project: true, task: true, team_id: 0, name: '', due: addDays(todayISO(), 2) })
+  const [f, setF] = useState({ contact: true, project: true, task: true, deal: false, team_id: 0, name: '', due: addDays(todayISO(), 2) })
   const teams = useOptions('teams', true)
   const [busy, setBusy] = useState(false)
   const [steps, setSteps] = useState<{ target: string; made?: Made; error?: string }[] | null>(null)
@@ -108,7 +110,7 @@ export function AcceptSheet({ view, onClose, onDone }: { view: AnswerView; onClo
       if (res.steps.every(s => !s.error)) toast('Brief accepted')
     } catch (e) { toast(errMsg(e), 'err') } finally { setBusy(false) }
   }
-  const row = (k: 'contact' | 'project' | 'task', slug: string, label: string, help: string) => (
+  const row = (k: 'contact' | 'project' | 'task' | 'deal', slug: string, label: string, help: string) => (
     <label className={`check-row ${on(slug) ? '' : 'disabled'}`} title={on(slug) ? undefined : why(slug)}>
       <Switch checked={f[k] && on(slug)} onChange={v => setF({ ...f, [k]: v })} label={label} disabled={!on(slug)} />
       <span><b>{label}</b><br /><span className="muted small">{on(slug) ? help : `Not connected: ${why(slug) || 'switch it on in Settings → Connected apps'}`}</span></span>
@@ -117,7 +119,7 @@ export function AcceptSheet({ view, onClose, onDone }: { view: AnswerView; onClo
   return (
     <Modal title="Accept the brief" onClose={steps ? onDone : onClose} size="sm" footer={steps ? <button type="button" className="btn primary" onClick={onDone}>Close</button> : <>
       <button type="button" className="btn" onClick={onClose}>Cancel</button>
-      <button type="button" className="btn primary" onClick={go} disabled={busy || !((f.contact && on('contacts')) || (f.project && on('projects')) || (f.task && on('tasks')))}>{busy ? <Spinner /> : <Icon name="check" size={15} />}Accept</button>
+      <button type="button" className="btn primary" onClick={go} disabled={busy || !((f.contact && on('contacts')) || (f.project && on('projects')) || (f.task && on('tasks')) || (f.deal && on('crm')))}>{busy ? <Spinner /> : <Icon name="check" size={15} />}Accept</button>
     </>}>
       {steps ? <div className="stack">
         {steps.map(s => <div key={s.target} className={`made-step ${s.error ? 'bad' : 'ok'}`}>
@@ -136,6 +138,7 @@ export function AcceptSheet({ view, onClose, onDone }: { view: AnswerView; onClo
         </div>}
         {row('task', 'tasks', 'A task to get back to them', 'With a link to the project.')}
         {f.task && on('tasks') && <div className="indent"><Field label="Due"><input type="date" value={f.due} onChange={e => setF({ ...f, due: e.target.value })} /></Field></div>}
+        {row('deal', 'crm', 'Add to Pocket CRM as a deal', 'A lead with their budget and deadline, to follow it to won or lost.')}
       </div>}
     </Modal>
   )

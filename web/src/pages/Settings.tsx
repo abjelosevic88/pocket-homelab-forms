@@ -19,7 +19,7 @@ const TABS: { id: TabId; label: string; icon: string; sub: string }[] = [
   { id: 'general', label: 'General', icon: 'home', sub: 'Dates, times, the app title, and how new forms start.' },
   { id: 'answers', label: 'Answers', icon: 'inbox', sub: 'Reading answers, follow-up tasks, the team for new projects and how replies leave.' },
   { id: 'notifications', label: 'Notifications', icon: 'bell', sub: 'A push for each new answer, and a morning note about the answers waiting.' },
-  { id: 'apps', label: 'Connected apps', icon: 'layers', sub: 'Where answers go on to: your contacts, projects, tasks, calendar, notes, mail and documents to sign.' },
+  { id: 'apps', label: 'Connected apps', icon: 'layers', sub: 'Where answers go on to: your contacts, projects, tasks, calendar, notes, mail, documents to sign and deals.' },
   { id: 'ai', label: 'AI', icon: 'sparkles', sub: 'Who helps you: Pocket AI through Core, or your own OpenAI key.' },
   { id: 'profile', label: 'Profile', icon: 'user', sub: 'Your name, email and password.' },
   { id: 'people', label: 'People', icon: 'users', sub: 'Everyone who has an account on this box. Each person has their own forms and answers.' },
@@ -205,6 +205,7 @@ const APPS: { slug: AppSlug; title: string; sub: string; token: string; port: st
   { slug: 'notes', title: 'Pocket Notes — answers as notes', sub: 'Keep an answer as a note, with a link back.', token: 'Pocket Notes → Settings → API tokens', port: '8182' },
   { slug: 'mail', title: 'Pocket Mail — replies from your mailbox', sub: 'Reply to people and send them a copy of their answers; it all lands in your Sent folder.', token: 'Pocket Mail → Settings → API tokens', port: '8208' },
   { slug: 'sign', title: 'Pocket Sign — contracts to sign', sub: 'After you accept a brief, send the person a contract from your Pocket Sign templates.', token: 'Pocket Sign → Settings → API tokens', port: '8234' },
+  { slug: 'crm', title: 'Pocket CRM — answers become leads', sub: 'Turn a brief or a quote request into a deal, with their budget and deadline, by hand or by itself for every answer.', token: 'Pocket CRM → Settings → API & shortcuts', port: '8249' },
 ]
 
 function Integrations() {

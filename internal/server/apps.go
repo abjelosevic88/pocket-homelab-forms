@@ -7,6 +7,8 @@ import (
 	"html"
 	"net/http"
 	"net/url"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -19,8 +21,9 @@ import (
 // the person into Pocket Contacts (unless their email is there already),
 // a project in Pocket Projects, a follow-up task in Pocket Tasks, the day
 // they picked in Pocket Calendar, a note in Pocket Notes, a reply from
-// Pocket Mail and a contract from a Pocket Sign template. Each thing made
-// is remembered with a link to it, and a failed try with why.
+// Pocket Mail, a contract from a Pocket Sign template and a lead in Pocket
+// CRM. Each thing made is remembered with a link to it, and a failed try
+// with why.
 
 // answerLink is the owner's page of an answer.
 func (s *Server) answerLink(r *store.Response) string {
@@ -72,7 +75,7 @@ func (s *Server) origin(f *store.Form, r *store.Response) string {
 }
 
 type makeIn struct {
-	Target     string `json:"target"` // contact | project | task | event | note | email | signing
+	Target     string `json:"target"` // contact | project | task | event | note | email | signing | deal
 	Title      string `json:"title"`
 	Notes      string `json:"notes"`
 	TeamID     int64  `json:"team_id"`
@@ -87,7 +90,7 @@ type makeIn struct {
 }
 
 var makeTargets = map[string]pocketApp{"contact": appContacts, "project": appProjects, "task": appTasks, "event": appCalendar,
-	"note": appNotes, "email": appMail, "signing": appSign}
+	"note": appNotes, "email": appMail, "signing": appSign, "deal": appCRM}
 
 // userErr is a reason the person can act on (400, not 502).
 type userErr struct{ msg string }
@@ -98,7 +101,7 @@ func (e *userErr) Error() string { return e.msg }
 func (s *Server) make(ctx context.Context, c *clients, f *store.Form, r *store.Response, in makeIn, auto bool) (*store.Made, error) {
 	a, ok := makeTargets[in.Target]
 	if !ok {
-		return nil, &userErr{"make a contact, project, task, event, note, email or a document to sign"}
+		return nil, &userErr{"make a contact, project, task, event, note, email, a document to sign or a deal"}
 	}
 	var (
 		res  map[string]any
@@ -127,6 +130,8 @@ func (s *Server) make(ctx context.Context, c *clients, f *store.Form, r *store.R
 		m.Title = firstNonEmpty(in.Subject, "Reply")
 	case "signing":
 		res, path, err = s.makeSigning(ctx, c, f, r, in)
+	case "deal":
+		res, path, err = s.makeDeal(ctx, c, f, r, in)
 	}
 	if err != nil {
 		if auto {
@@ -143,6 +148,16 @@ func (s *Server) make(ctx context.Context, c *clients, f *store.Form, r *store.R
 		}
 	}
 	s.store.DropMadeErrors(ctx, r.UserID, r.ID, m.Target)
+	if in.Target == "deal" && m.Ref != "" {
+		// Pocket CRM answers with the same deal for the same answer: remember it once
+		if made, err := s.store.MadeFor(ctx, r.UserID, r.ID); err == nil {
+			for i := range made {
+				if made[i].Target == "deal" && made[i].Ref == m.Ref && made[i].Error == "" {
+					return &made[i], nil
+				}
+			}
+		}
+	}
 	if err := s.store.AddMade(ctx, r.UserID, m); err != nil {
 		return nil, err
 	}
@@ -487,6 +502,143 @@ func (s *Server) makeSigning(ctx context.Context, c *clients, f *store.Form, r *
 	return res, "/documents/" + idOf(res), nil
 }
 
+// ---- Pocket CRM ----
+
+// makeDeal adds the answer to Pocket CRM as a lead. CRM keeps source_ref as
+// "forms:answer:<id>" — the same key its own Leads page uses when it takes
+// an answer from Forms — so either way there is only ever one deal.
+func (s *Server) makeDeal(ctx context.Context, c *clients, f *store.Form, r *store.Response, in makeIn) (map[string]any, string, error) {
+	sib, err := c.conn(ctx, appCRM, scopeCRMWrite)
+	if err != nil {
+		return nil, "", err
+	}
+	company := r.RoleText(f, "company")
+	title := strings.TrimSpace(in.Title)
+	if title == "" {
+		title = firstNonEmpty(r.RoleText(f, "subject"), f.Title)
+		if w := firstNonEmpty(company, r.Name); w != "" {
+			title = w + " — " + title
+		}
+	}
+	budget := strings.TrimSpace(r.RoleText(f, "budget"))
+	desc := answersMarkdown(f, r)
+	if n := strings.TrimSpace(in.Notes); n != "" {
+		desc = n + "\n\n" + desc
+	}
+	body := map[string]any{"title": clip(title, 200), "source": "form", "source_ref": fmt.Sprintf("answer:%d", r.ID),
+		"next_action": "Get back to " + firstNonEmpty(r.Name, company, r.Email, "them"), "note": fmt.Sprintf("From the form “%s”", f.Title)}
+	amount, currency, ok := parseBudget(budget)
+	if ok {
+		body["amount"] = amount
+		if currency != "" {
+			body["currency"] = currency
+		}
+	} else if budget != "" && !strings.Contains(desc, budget) {
+		desc = "**Budget:** " + budget + "\n\n" + desc
+	}
+	body["description"] = clip(joinNonEmpty("\n\n---\n", desc, s.origin(f, r)), 20000)
+	for k, v := range map[string]string{"contact_name": r.Name, "contact_email": r.Email, "contact_phone": r.RoleText(f, "phone"), "company": company} {
+		if v = strings.TrimSpace(v); v != "" {
+			body[k] = v
+		}
+	}
+	if d := r.RoleText(f, "deadline"); d != "" && validDate(d) {
+		body["expected_close"] = d
+	}
+	if c.st.TaskDays > 0 {
+		body["next_due"] = time.Now().AddDate(0, 0, c.st.TaskDays).Format("2006-01-02")
+	}
+	res, err := postJSONTo(ctx, sib, "/api/v1/deals", body)
+	if err != nil {
+		return nil, "", err
+	}
+	if d, ok := res["deal"].(map[string]any); ok {
+		res = d
+	}
+	return res, "/deals/" + idOf(res), nil
+}
+
+var (
+	reMoney    = regexp.MustCompile(`\d+(?:[.,'’ ]\d{3})*(?:[.,]\d{1,2})?(?:\s?[kK]\b)?`)
+	reRangeSep = regexp.MustCompile(`(?i)^\s*(?:-|–|—|to|do|bis|à|a)\s*$`)
+	reCurrency = []struct {
+		re   *regexp.Regexp
+		code string
+	}{
+		{regexp.MustCompile(`€|(?i)(?:^|[^a-z])eur(?:o|os)?\b`), "EUR"},
+		{regexp.MustCompile(`\$|(?i)(?:^|[^a-z])usd\b`), "USD"},
+		{regexp.MustCompile(`£|(?i)(?:^|[^a-z])gbp\b`), "GBP"},
+		{regexp.MustCompile(`(?i)(?:^|[^a-z])(?:km|bam)\b`), "BAM"},
+		{regexp.MustCompile(`(?i)(?:^|[^a-z])chf\b`), "CHF"},
+		{regexp.MustCompile(`(?i)(?:^|[^a-z])(?:rsd|din(?:ara?)?)\b`), "RSD"},
+	}
+)
+
+// parseBudget reads a budget answer as a number: "4500", "€2,000",
+// "2.000 KM", "5k", or the low end of a range ("€2,000 – €5,000"). Anything
+// else (two unrelated numbers, "not sure yet") is not a number. The
+// currency comes back when the answer names exactly one.
+func parseBudget(text string) (amount float64, currency string, ok bool) {
+	text = strings.TrimSpace(text)
+	locs := reMoney.FindAllStringIndex(text, -1)
+	if len(locs) == 0 || len(locs) > 2 {
+		return 0, "", false
+	}
+	var nums []float64
+	for _, l := range locs {
+		v, good := moneyNumber(text[l[0]:l[1]])
+		if !good {
+			return 0, "", false
+		}
+		nums = append(nums, v)
+	}
+	if len(nums) == 2 {
+		between := text[locs[0][1]:locs[1][0]]
+		for _, c := range reCurrency {
+			between = c.re.ReplaceAllString(between, "")
+		}
+		if !reRangeSep.MatchString(between) {
+			return 0, "", false
+		}
+		nums[0] = min(nums[0], nums[1])
+	}
+	if nums[0] <= 0 {
+		return 0, "", false
+	}
+	for _, c := range reCurrency {
+		if c.re.MatchString(text) {
+			if currency != "" && currency != c.code {
+				currency = ""
+				break
+			}
+			currency = c.code
+		}
+	}
+	return nums[0], currency, true
+}
+
+// moneyNumber turns "2,000", "2.000,50", "1 500" or "5k" into a number.
+func moneyNumber(t string) (float64, bool) {
+	t = strings.TrimSpace(t)
+	mult := 1.0
+	if strings.HasSuffix(t, "k") || strings.HasSuffix(t, "K") {
+		mult, t = 1000, strings.TrimSpace(t[:len(t)-1])
+	}
+	frac := ""
+	if i := strings.LastIndexAny(t, ".,"); i >= 0 && len(t)-i-1 <= 2 {
+		t, frac = t[:i], t[i+1:]
+	}
+	t = strings.NewReplacer(".", "", ",", "", "'", "", "’", "", " ", "").Replace(t)
+	if frac != "" {
+		t += "." + frac
+	}
+	v, err := strconv.ParseFloat(t, 64)
+	if err != nil {
+		return 0, false
+	}
+	return v * mult, true
+}
+
 // ---- the handlers ----
 
 func (s *Server) ownResponse(w http.ResponseWriter, r *http.Request) (*store.Form, *store.Response, bool) {
@@ -536,8 +688,8 @@ func (s *Server) handleMake(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleAccept takes a brief on: the person into Contacts, a project, a
-// follow-up task — each step on its own, so one app being off does not stop
-// the others — and marks the answer done.
+// follow-up task, a deal in Pocket CRM — each step on its own, so one app
+// being off does not stop the others — and marks the answer done.
 func (s *Server) handleAccept(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	f, resp, ok := s.ownResponse(w, r)
@@ -548,6 +700,7 @@ func (s *Server) handleAccept(w http.ResponseWriter, r *http.Request) {
 		Contact bool   `json:"contact"`
 		Project bool   `json:"project"`
 		Task    bool   `json:"task"`
+		Deal    bool   `json:"deal"`
 		TeamID  int64  `json:"team_id"`
 		Name    string `json:"name"`
 		Due     string `json:"due"`
@@ -588,6 +741,9 @@ func (s *Server) handleAccept(w http.ResponseWriter, r *http.Request) {
 		}
 		run("task", makeIn{Target: "task", Title: fmt.Sprintf("Get back to %s about “%s”", who(f, resp), firstNonEmpty(resp.RoleText(f, "subject"), f.Title)),
 			Notes: joinNonEmpty("\n", projectURL), Due: due})
+	}
+	if in.Deal {
+		run("deal", makeIn{Target: "deal"})
 	}
 	worked := 0
 	for _, st := range steps {

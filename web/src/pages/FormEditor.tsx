@@ -247,6 +247,7 @@ function After({ f, edit }: { f: Form; edit: (p: Partial<Form>) => void }) {
         {f.auto.task && on('tasks') && <SettingRow title="Due after" help="0: no due day."><input type="number" className="num-sm" min={0} max={365} value={f.auto.task_days} onChange={e => auto({ task_days: Math.max(0, Number(e.target.value) || 0) })} /></SettingRow>}
         {appRow('calendar', 'Put the day they picked in my calendar', 'For appointments and sign-ups for a day.', f.auto.event, v => auto({ event: v }), hasDay ? '' : 'Needs a question used as “a day for the calendar” (Questions → This answer is).')}
         {appRow('notes', 'Save each answer as a note', 'In Pocket Notes, with a link back.', f.auto.note, v => auto({ note: v }))}
+        {appRow('crm', 'Add each answer to Pocket CRM as a lead', 'A new deal with what they asked for, their budget and their deadline.', !!f.auto.deal, v => auto({ deal: v }))}
         {appRow('mail', 'Email them a copy of their answers', 'From your own mailbox, in the form’s language.', f.send_copy, v => edit({ send_copy: v }), hasEmail ? '' : 'Needs a question used as their email (Questions → This answer is).')}
         <p className="muted small">Every answer is also an event for Pocket Flows (“an answer arrived”), for anything else you want to happen.</p>
       </section>

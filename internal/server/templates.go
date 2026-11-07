@@ -50,7 +50,7 @@ func opts(o ...string) func(*store.Field) {
 func other(f *store.Field) { f.Other = true }
 
 var formTemplates = []formTemplate{
-	{Key: "project", Name: "Start a project with me", Emoji: "🚀", Links: []string{"contacts", "projects", "tasks", "mail", "sign"},
+	{Key: "project", Name: "Start a project with me", Emoji: "🚀", Links: []string{"contacts", "projects", "tasks", "mail", "sign", "crm"},
 		Blurb:       "A brief from a new client: who they are, what they need, the budget and the deadline. Accept it and the contact, the project and a follow-up task are made for you.",
 		Title:       "Start a project with me",
 		Description: "Tell me a little about what you have in mind. It takes about three minutes, and I answer every brief within two working days.",
@@ -82,7 +82,7 @@ var formTemplates = []formTemplate{
 			fld("subject", "text", "What is it about?", role("subject")),
 			fld("message", "long", "Message", req, role("message")),
 		}},
-	{Key: "quote", Name: "Ask for a quote", Emoji: "🧾", Links: []string{"contacts", "tasks", "calendar", "mail"},
+	{Key: "quote", Name: "Ask for a quote", Emoji: "🧾", Links: []string{"contacts", "tasks", "calendar", "mail", "crm"},
 		Blurb:  "For a trade or a service: what needs doing, where, when, and how to reach the person.",
 		Title:  "Ask for a quote",
 		Thanks: "Thank you! You will have a quote from me within a few days.",

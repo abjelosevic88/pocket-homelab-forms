@@ -47,10 +47,11 @@ export const APP_INFO: Record<AppSlug, { name: string; icon: string; verb: strin
   notes: { name: 'Pocket Notes', icon: 'note', verb: 'Save as a note' },
   mail: { name: 'Pocket Mail', icon: 'mail', verb: 'Reply' },
   sign: { name: 'Pocket Sign', icon: 'pen', verb: 'Send a document to sign' },
+  crm: { name: 'Pocket CRM', icon: 'target', verb: 'Add as a deal' },
 }
 
-export const TARGET_APP: Record<string, AppSlug> = { contact: 'contacts', project: 'projects', task: 'tasks', event: 'calendar', note: 'notes', email: 'mail', signing: 'sign' }
-export const TARGET_LABEL: Record<string, string> = { contact: 'Contact', project: 'Project', task: 'Task', event: 'Event', note: 'Note', email: 'Email', signing: 'To sign' }
+export const TARGET_APP: Record<string, AppSlug> = { contact: 'contacts', project: 'projects', task: 'tasks', event: 'calendar', note: 'notes', email: 'mail', signing: 'sign', deal: 'crm' }
+export const TARGET_LABEL: Record<string, string> = { contact: 'Contact', project: 'Project', task: 'Task', event: 'Event', note: 'Note', email: 'Email', signing: 'To sign', deal: 'Deal' }
 
 export const STATUS_LABEL: Record<AnswerStatus, string> = { new: 'New', seen: 'Read', done: 'Done', spam: 'Spam' }
 

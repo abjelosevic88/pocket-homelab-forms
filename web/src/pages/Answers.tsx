@@ -101,7 +101,7 @@ function AnswerPanel({ id, back, onGo, formFilter }: { id: number; back?: () => 
   const { on, why } = useApps()
   const [v, setV] = useState<AnswerView | null>(null)
   const [err, setErr] = useState('')
-  const [sheet, setSheet] = useState<'' | 'accept' | 'reply' | 'contact' | 'project' | 'task' | 'event' | 'note' | 'signing'>('')
+  const [sheet, setSheet] = useState<'' | 'accept' | 'reply' | 'contact' | 'project' | 'task' | 'event' | 'note' | 'signing' | 'deal'>('')
   const [del, setDel] = useState(false)
   const [note, setNote] = useState('')
   const load = useCallback(async () => {
@@ -143,6 +143,7 @@ function AnswerPanel({ id, back, onGo, formFilter }: { id: number; back?: () => 
     gate('calendar', 'Add to Pocket Calendar', 'calendar', 'event'),
     gate('notes', 'Save as a note', 'note', 'note'),
     gate('sign', 'Send a document to sign', 'pen', 'signing', !r.email ? 'no email' : ''),
+    gate('crm', 'Add to Pocket CRM as a deal', 'target', 'deal'),
   ]
   const moreItems = (): MenuItem[] => [
     { label: r.status === 'new' ? 'Mark as read' : 'Mark as new', icon: 'eye', onSelect: () => patch({ status: r.status === 'new' ? 'seen' : 'new' }) },
@@ -171,7 +172,7 @@ function AnswerPanel({ id, back, onGo, formFilter }: { id: number; back?: () => 
         <span className={`pill st-${r.status}`}>{STATUS_LABEL[r.status]}</span>
       </header>
       <div className="answer-actions row wrap">
-        {isBrief && <button type="button" className="btn primary" onClick={() => setSheet('accept')} disabled={!on('contacts') && !on('projects') && !on('tasks')} title="Contact, project and a follow-up task in one step"><Icon name="check-circle" size={15} />Accept the brief</button>}
+        {isBrief && <button type="button" className="btn primary" onClick={() => setSheet('accept')} disabled={!on('contacts') && !on('projects') && !on('tasks') && !on('crm')} title="Contact, project and a follow-up task in one step"><Icon name="check-circle" size={15} />Accept the brief</button>}
         {r.email && <button type="button" className={`btn ${isBrief ? '' : 'primary'}`} onClick={() => setSheet('reply')} disabled={!on('mail')} title={on('mail') ? 'Reply (r)' : `Pocket Mail: ${why('mail') || 'not connected'}`}><Icon name="mail" size={15} />Reply</button>}
         <MenuButton label="Send on to an app" className="btn" items={makeItems} width={300}><Icon name="layers" size={15} />Send on…<Icon name="chevron-down" size={14} /></MenuButton>
       </div>
@@ -198,7 +199,7 @@ function AnswerPanel({ id, back, onGo, formFilter }: { id: number; back?: () => 
       </div>
       {sheet === 'accept' && <AcceptSheet view={v} onClose={() => setSheet('')} onDone={() => { setSheet(''); load(); announceChange() }} />}
       {sheet === 'reply' && <ReplySheet view={v} aiOn={aiOn} onClose={() => setSheet('')} onDone={madeOne} />}
-      {['contact', 'project', 'task', 'event', 'note', 'signing'].includes(sheet) && <MakeSheet view={v} target={sheet} onClose={() => setSheet('')} onDone={madeOne} />}
+      {['contact', 'project', 'task', 'event', 'note', 'signing', 'deal'].includes(sheet) && <MakeSheet view={v} target={sheet} onClose={() => setSheet('')} onDone={madeOne} />}
       {del && <Confirm title="Delete this answer?" message={`${who}’s answer to “${v.form.title}” is deleted. What was made from it in your other apps stays there.`} confirmLabel="Delete"
         onCancel={() => setDel(false)} onConfirm={async () => { setDel(false); try { await api.del(`${V1}/responses/${r.id}`); announceChange(); toast('Deleted'); if (v.next) onGo(v.next); else if (v.prev) onGo(v.prev); else back?.() } catch (e) { toast(errMsg(e), 'err') } }} />}
     </div>

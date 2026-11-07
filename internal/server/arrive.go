@@ -45,6 +45,9 @@ func (s *Server) responseArrived(ctx context.Context, f *store.Form, r *store.Re
 	if f.Auto.Note {
 		_, _ = s.make(ctx, c, f, r, makeIn{Target: "note"}, true)
 	}
+	if f.Auto.Deal {
+		_, _ = s.make(ctx, c, f, r, makeIn{Target: "deal"}, true)
+	}
 	if f.SendCopy && r.Email != "" {
 		m := &store.Made{ResponseID: r.ID, Target: "email", App: appMail.slug, Auto: true, Title: "A copy of the answers to " + r.Email}
 		if err := s.sendCopy(ctx, c, f, r); err != nil {

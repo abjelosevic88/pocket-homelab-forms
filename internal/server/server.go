@@ -206,7 +206,7 @@ var eventTopics = []string{"forms.response_received", "forms.form_opened", "form
 func (s *Server) registerWithCore(ctx context.Context) error {
 	m := core.Manifest{
 		Slug: "forms", Name: "Pocket Forms",
-		Description: "Forms and surveys anyone can fill in without an account: a brief from a new client, feedback, sign-ups, an RSVP, a quote request. Answers land in one inbox; one click adds the person to Pocket Contacts, starts a project in Pocket Projects, makes a follow-up task, puts the day they picked in Pocket Calendar, saves a note or sends a contract from Pocket Sign, and you reply from your own mailbox through Pocket Mail. Every answer is an event for Pocket Flows. Pocket AI drafts a form from a sentence and sums up the answers.",
+		Description: "Forms and surveys anyone can fill in without an account: a brief from a new client, feedback, sign-ups, an RSVP, a quote request. Answers land in one inbox; one click adds the person to Pocket Contacts, starts a project in Pocket Projects, makes a follow-up task, puts the day they picked in Pocket Calendar, saves a note, sends a contract from Pocket Sign or adds a lead to Pocket CRM, and you reply from your own mailbox through Pocket Mail. Every answer is an event for Pocket Flows. Pocket AI drafts a form from a sentence and sums up the answers.",
 		Icon:        "/favicon.svg", Version: Version,
 		URL: s.cfg.CoreAppURL, PublicURL: s.cfg.BaseURL, HealthPath: "/healthz", EnvPrefix: "FORMS",
 		Publishes: eventTopics,

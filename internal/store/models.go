@@ -69,10 +69,11 @@ type Auto struct {
 	TaskDays int  `json:"task_days"` // due this many days later (0 = no due date)
 	Event    bool `json:"event"`     // the day they picked into Pocket Calendar
 	Note     bool `json:"note"`      // the answers as a note in Pocket Notes
+	Deal     bool `json:"deal"`      // a lead (a deal) in Pocket CRM
 }
 
 // Any reports whether anything happens by itself.
-func (a Auto) Any() bool { return a.Contact || a.Task || a.Event || a.Note }
+func (a Auto) Any() bool { return a.Contact || a.Task || a.Event || a.Note || a.Deal }
 
 // Form is one form.
 type Form struct {

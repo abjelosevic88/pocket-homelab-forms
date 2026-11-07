@@ -33,6 +33,7 @@ const (
 	scopeMailSend      = "mail:send"
 	scopeSigningRead   = "signing:read"
 	scopeSigningWrite  = "signing:write"
+	scopeCRMWrite      = "crm:write"
 )
 
 // pocketApp is one sibling Pocket app answers can go to.
@@ -50,7 +51,8 @@ var (
 	appNotes    = pocketApp{"notes", "Pocket Notes", []string{scopeNotesWrite}, "Save an answer as a note"}
 	appMail     = pocketApp{"mail", "Pocket Mail", []string{scopeMailSend}, "Reply to people who answered, and send them a copy of their answers, from your own mailbox (it lands in your Sent folder)"}
 	appSign     = pocketApp{"sign", "Pocket Sign", []string{scopeSigningRead, scopeSigningWrite}, "Send the person a contract or an agreement from your templates to sign, after you accept their brief"}
-	pocketApps  = []pocketApp{appContacts, appProjects, appTasks, appCalendar, appNotes, appMail, appSign}
+	appCRM      = pocketApp{"crm", "Pocket CRM", []string{scopeCRMWrite}, "Turn an answer into a lead in Pocket CRM, with what they asked for, their budget and their deadline"}
+	pocketApps  = []pocketApp{appContacts, appProjects, appTasks, appCalendar, appNotes, appMail, appSign, appCRM}
 )
 
 func appBySlug(slug string) (pocketApp, bool) {

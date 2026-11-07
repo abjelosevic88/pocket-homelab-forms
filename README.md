@@ -1,6 +1,6 @@
 <p align="center"><img src="web/public/favicon.svg" width="72" alt=""></p>
 <h1 align="center">Pocket Forms</h1>
-<p align="center">Forms and surveys anyone can fill in without an account: a brief from a new client, feedback, sign-ups for a workshop, an RSVP, a quote request. Start from a ready-made form or describe it in a sentence and let Pocket AI make the questions; share a link or put it on your website. Answers land in one inbox where one click adds the person to your contacts, starts a project, makes a follow-up task, puts the day they picked in your calendar or sends them a contract to sign — and you reply from your own mailbox. Bring old answers from Google Forms, Typeform or Tally.<br>One Go binary, one SQLite file, one volume. Part of the Pocket apps; works on its own too.</p>
+<p align="center">Forms and surveys anyone can fill in without an account: a brief from a new client, feedback, sign-ups for a workshop, an RSVP, a quote request. Start from a ready-made form or describe it in a sentence and let Pocket AI make the questions; share a link or put it on your website. Answers land in one inbox where one click adds the person to your contacts, starts a project, makes a follow-up task, puts the day they picked in your calendar, sends them a contract to sign or adds them to your CRM as a lead — and you reply from your own mailbox. Bring old answers from Google Forms, Typeform or Tally.<br>One Go binary, one SQLite file, one volume. Part of the Pocket apps; works on its own too.</p>
 <p align="center">
   <a href="https://github.com/abjelosevic88/pocket-homelab-forms/actions"><img src="https://github.com/abjelosevic88/pocket-homelab-forms/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
   <a href="https://github.com/abjelosevic88/pocket-homelab-forms/pkgs/container/pocket-homelab-forms"><img src="https://img.shields.io/badge/ghcr.io-amd64%20%7C%20arm64%20%7C%20armv7-blue" alt="image"></a>
@@ -74,11 +74,12 @@ Set `CORE_URL` and `CORE_REGISTRATION_KEY` and Forms joins the box: people sign 
 | Pocket Notes | a note | `notes:write` |
 | Pocket Mail | your reply, and a copy of their answers, from your own mailbox | `mail:send` |
 | Pocket Sign | a contract from one of your templates, for them to sign | `signing:read`, `signing:write` |
+| Pocket CRM | a lead (a deal) with what they asked for, their budget as its amount, their deadline as its expected close and a next step to get back to them — once per answer, however often you send it | `crm:write` |
 | Pocket AI | a form from a sentence, a summary of the answers, a reply; the Ask button on every page | inference |
 
-**Accept the brief** does the first three in one step. Each form can also do things **by itself** for every answer: add the person to Contacts, make a task, put the day in the Calendar, save a note, email them a copy.
+**Accept the brief** does the first three in one step (and, if you tick it, adds a deal to Pocket CRM). Each form can also do things **by itself** for every answer: add the person to Contacts, make a task, put the day in the Calendar, save a note, add a lead to Pocket CRM, email them a copy.
 
-Other apps read your forms (`forms:read`: Pocket Day writes the answers that came in into your journal, Pocket Search finds them, Pocket Contacts shows a person's answers on their page, Pocket AI tells you what came in) and start forms for you (`forms:write`: “make me a sign-up form for Saturday's walk” in Pocket AI — a draft for you to check, changing only the forms it made). Events on the bus — `forms.response_received` (with the answers by question), `forms.form_opened`, `forms.form_closed` — start flows in Pocket Flows. Without Core every connection can be made directly with a URL and a token; the Core-only choices stay visible, greyed out.
+Other apps read your forms (`forms:read`: Pocket Day writes the answers that came in into your journal, Pocket Search finds them, Pocket Contacts shows a person's answers on their page, Pocket AI tells you what came in, Pocket CRM's Leads page lists the answers not yet deals) and start forms for you (`forms:write`: “make me a sign-up form for Saturday's walk” in Pocket AI — a draft for you to check, changing only the forms it made). Events on the bus — `forms.response_received` (with the answers by question), `forms.form_opened`, `forms.form_closed` — start flows in Pocket Flows. Without Core every connection can be made directly with a URL and a token; the Core-only choices stay visible, greyed out.
 
 ## Develop
 

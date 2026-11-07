@@ -114,7 +114,7 @@ function Shell() {
     { id: 'forms', label: 'Forms', icon: 'list', hint: 'F', keywords: 'surveys', run: () => navigate('/forms') },
     ...(forms || []).map(f => ({ id: `form-${f.id}`, label: `${f.emoji ? f.emoji + ' ' : ''}${f.title}`, icon: 'file', keywords: 'form edit ' + f.handle, run: () => navigate(`/forms/${f.id}`) })),
     { id: 'settings', label: 'Settings', icon: 'settings', hint: ',', run: () => navigate('/settings') },
-    { id: 'apps', label: 'Settings: connected apps', icon: 'layers', keywords: 'contacts projects tasks calendar notes mail sign core', run: () => navigate('/settings/apps') },
+    { id: 'apps', label: 'Settings: connected apps', icon: 'layers', keywords: 'contacts projects tasks calendar notes mail sign crm deals core', run: () => navigate('/settings/apps') },
     { id: 'ai-set', label: 'Settings: AI', icon: 'sparkles', keywords: 'pocket ai openai', run: () => navigate('/settings/ai') },
     { id: 'export', label: 'Settings: export your forms', icon: 'download', keywords: 'backup json csv', run: () => navigate('/settings/data') },
     { id: 'shortcuts', label: 'Keyboard shortcuts', icon: 'keyboard', hint: '?', run: () => setShortcuts(true) },

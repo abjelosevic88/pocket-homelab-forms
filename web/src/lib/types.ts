@@ -3,7 +3,7 @@ export interface APIToken { id: number; user_id: number; name: string; prefix: s
 
 export type ConnMode = 'core' | 'direct' | 'off'
 export type ConnVia = '' | 'core' | 'direct'
-export type AppSlug = 'contacts' | 'projects' | 'tasks' | 'calendar' | 'notes' | 'mail' | 'sign'
+export type AppSlug = 'contacts' | 'projects' | 'tasks' | 'calendar' | 'notes' | 'mail' | 'sign' | 'crm'
 
 type ConnFields = { [K in AppSlug as `${K}_mode`]: ConnMode } & { [K in AppSlug as `${K}_via`]: ConnVia } & { [K in AppSlug as `${K}_detail` | `${K}_url` | `${K}_token` | `${K}_public_url` | `${K}_open_url`]: string } & { [K in AppSlug as `${K}_configured`]: boolean }
 
@@ -26,7 +26,7 @@ export interface FormField {
   id: string; type: FieldType; label: string; help?: string; required?: boolean; options?: string[]; other?: boolean; placeholder?: string; role?: Role
 }
 
-export interface Auto { contact: boolean; task: boolean; task_days: number; event: boolean; note: boolean }
+export interface Auto { contact: boolean; task: boolean; task_days: number; event: boolean; note: boolean; deal?: boolean }
 
 export type FormStatus = 'draft' | 'open' | 'closed'
 
