@@ -32,6 +32,7 @@ JSON at `/api/v1`, with a session cookie or `Authorization: Bearer <token>` (Set
 
 ## Data
 - `GET /export.json`, `POST /import` (multipart `file`: a Pocket Forms export or a CSV of answers), `GET /backup` (admins).
+- `GET /pocket/portable`: Pocket Move can copy your forms and answers out (`GET /export.json`, link scope `move:export`) and bring them in (`POST /import`, `move:import`).
 
 ## Public
 - `GET|POST /f/{address}` — the form; `GET /f/{address}/thanks`. `?embed=1` without the page around it; `?<field id or role>=…` fills an answer in.

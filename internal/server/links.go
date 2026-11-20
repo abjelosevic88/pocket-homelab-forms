@@ -21,6 +21,18 @@ var linkOffers = []core.Offer{
 	{Scope: "forms:write", Name: "Make forms for you", Description: "Start a form as a draft for you to check (\"make me a sign-up form for Saturday\"), and open or close it when you ask. It may change only the forms that app made itself."},
 }
 
+// portable is what Pocket Move may copy out and bring in for a person
+// (docs/move.md in pocket-homelab-core); Register adds move:export/import.
+var portable = &core.Portable{
+	Exports: []core.PortableExport{
+		{Path: "/api/v1/export.json", File: "forms.json", Kind: core.KindPocket, Title: "Every form you made, with its questions and every answer it got"},
+	},
+	Imports: []core.PortableImport{
+		{Path: "/api/v1/import", Kind: core.KindPocket, Form: "file", Title: "Adds the forms and their answers from another box; what you already have is left alone"},
+		{Path: "/api/v1/import", Kind: core.KindCSV, Form: "file", Title: "Adds the answers of a form from Google Forms, Typeform, Tally, Microsoft Forms or Jotform as CSV; a second run adds nothing"},
+	},
+}
+
 type linkRoute struct {
 	methods string
 	path    *regexp.Regexp
@@ -41,6 +53,9 @@ var errLinkScope = errors.New("outside the link's scope")
 
 // linkAllows reports whether a link token with these scopes may make this request.
 func linkAllows(scopes []string, r *http.Request) bool {
+	if portable.LinkAllows(scopes, r) {
+		return true
+	}
 	for _, lr := range linkRoutes {
 		if !strings.Contains(" "+lr.methods+" ", " "+r.Method+" ") || !lr.path.MatchString(r.URL.Path) {
 			continue
